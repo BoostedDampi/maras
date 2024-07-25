@@ -12,7 +12,7 @@ class Frag:
 
 class Slide:
     
-    def __init__(self, text):
+    def __init__(self, text, fade_out=None, fade_in=None):
 
         self.content = ""
         self.diff = []
@@ -21,6 +21,10 @@ class Slide:
 
         self.content = text
         self.diff = self.diff_newline_split([(0, self.content)]) #In case this is the first slide no diff will be use
+
+        self.fade_out = lambda frame, frames: 1-(frame/frames) if fade_out is None else fade_out
+        self.fade_in = lambda frame, frames: frame/frames if fade_in is None else fade_in 
+
 
     def diff_with(self, other_slide):
         dmp = dmp_module.diff_match_patch()

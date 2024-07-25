@@ -4,7 +4,6 @@ import numpy as np
 from .slide import Slide
 class CodeEngine:
 
-    
     def __init__(self, font_name, font_size, img_size=(800,800), fps=24):
         self.slides = []
         self.font = ImageFont.truetype(f"fonts/{font_name}", font_size) if font_name else ImageFont.load_default()
@@ -30,7 +29,6 @@ class CodeEngine:
     def dynamic_remove(self, slide, duration=2):
         
         frames = duration * self.fps
-
         diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-1])]
         original = self.static_frames(slide, [0,-1])
 
@@ -39,12 +37,11 @@ class CodeEngine:
         combined_to_mantain = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==0])
 
         #generating evenly spaced numbers for every frame
-        scaling_function = lambda frame: (1-(1/frames))*frames-frame
-
+        scaling_function = slide.fade_out 
         buffer = []
         for frame in range(1, frames):
             #the factor to multiply with the alpha
-            factor = scaling_function(frame)
+            factor = scaling_function(frame, frames)
 
             edited = np.array(combined_to_remove)
             edited[...,3] = (edited[..., 3] * factor).astype(np.uint8)
@@ -56,7 +53,6 @@ class CodeEngine:
     def dynamic_blendin(self, slide, duration=5):
             
             frames = duration * self.fps
-
             diff = [diff[0] for diff in slide.diff if (diff[0] in [0,1])]
             original = self.static_frames(slide, [0,1])
 
@@ -65,12 +61,12 @@ class CodeEngine:
             combined_to_mantain = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==0])
 
             #generating evenly spaced numbers for every frame
-            scaling_factor = np.linspace(0,1,frames) 
+            scaling_function = slide.fade_in 
 
             buffer = []
-            for t in range(1, frames):
+            for t in range(0, frames):
                 #the factor to multiply with the alpha
-                factor = scaling_factor[t] if t < len(scaling_factor) else 0
+                factor = scaling_function(t, frames)
 
                 edited = np.array(combined_to_blendin)
                 edited[...,3] = (edited[..., 3] * factor).astype(np.uint8)
@@ -92,9 +88,14 @@ class CodeEngine:
 
         steps = np.array([(after-bef)/fps for (bef, after) in zip(before_pos, after_pos)])
 
-        print("---- Dynamic Move ----")
-        for b,a,s in zip(before_pos, after_pos, steps):
-            print(f"{b}\t-> {a} in {s} steps")
+        print("---------- Dynamic Move -----------")
+        for b, a, s in zip(before_pos, after_pos, steps):
+            # Format the positions and steps to fixed-width strings
+            b_str = f"[{b[0]:3d} {b[1]:3d}]"
+            a_str = f"[{a[0]:3d} {a[1]:3d}]"
+            s_str = f"[{s[0]:5.2f} {s[1]:5.2f}]"
+            # Print the formatted strings with the arrow in the same column
+            print(f"{b_str} -> {a_str} in {s_str} steps")
 
         frames = []
         for frame in range(fps):
