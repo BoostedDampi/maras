@@ -32,19 +32,19 @@ class CodeEngine:
         frames = duration * self.fps
 
         diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-1])]
-        original = self.static_frame_list(slide, [0,-1])
+        original = self.static_frames(slide, [0,-1])
 
         #Combining images to remove and images to mantain to make blend simpler
         combined_to_remove = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==-1])
         combined_to_mantain = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==0])
 
         #generating evenly spaced numbers for every frame
-        scaling_factor = np.linspace(1,0,frames) 
+        scaling_function = lambda frame: (1-(1/frames))*frames-frame
 
         buffer = []
-        for t in range(1, frames):
+        for frame in range(1, frames):
             #the factor to multiply with the alpha
-            factor = scaling_factor[t] if t < len(scaling_factor) else 0
+            factor = scaling_function(frame)
 
             edited = np.array(combined_to_remove)
             edited[...,3] = (edited[..., 3] * factor).astype(np.uint8)
@@ -58,7 +58,7 @@ class CodeEngine:
             frames = duration * self.fps
 
             diff = [diff[0] for diff in slide.diff if (diff[0] in [0,1])]
-            original = self.static_frame_list(slide, [0,1])
+            original = self.static_frames(slide, [0,1])
 
             #Combining images to remove and images to mantain to make blend simpler
             combined_to_blendin = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==1])
@@ -85,7 +85,7 @@ class CodeEngine:
 
         new_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,1])]
         old_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-1])]
-        original = [img for (img, diff) in zip(self.static_frame_list(slide, [0,-1]), old_diff) if (diff==0)]
+        original = [img for (img, diff) in zip(self.static_frames(slide, [0,-1]), old_diff) if (diff==0)]
 
         before_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,-1]), old_diff) if pos[1] == 0])
         after_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,1]), new_diff) if pos[1] == 0])
@@ -104,7 +104,6 @@ class CodeEngine:
                 frames.append(self.blend_imgs(original, output_array))
         return frames
 
-    
 
     def static_sequence(self, slide, duration=5):
         """
@@ -117,7 +116,7 @@ class CodeEngine:
             raise Exception("At least one slide is neccesary...")
 
         frames_to_render = duration*self.fps
-        frame = self.static_frame(slide)
+        frame = self.blend_imgs(self.static_frames(slide))
         frames = [frame for _ in range(frames_to_render)]
         return frames
 
@@ -127,14 +126,25 @@ class CodeEngine:
         clip.write_videofile("output/"+name, fps=self.fps)
 
 
-    def create_text_image(self, text, position=(0, 0)):
+    def create_text_image(self, text, position=(0, 0), color="white"):
+        """
+        Takes a string and returns a PIL.Image
+        test:String -> the string to add to the image
+        position:(int,int) -> the position in the image.
+        color:String|(int,int,int,int) -> the color of the text
+        """
         img = Image.new('RGBA', self.img_size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(img)
-        draw.text(position, text, font=self.font, fill="white")
+        draw.text(position, text, font=self.font, fill=color)
         return img
 
     
     def blend_imgs(self, images, pos=[]):
+        """
+        Blends a list of images into one.
+        images:[Image] -> the list of images to be blended
+        pos:[(int,int)] -> the position of the (0,0) point in the final image. if empty (0,0)
+        """
         new_image = Image.new('RGBA', self.img_size, (0, 0, 0, 0))
         # Paste images onto the new image
         if len(pos):
@@ -144,22 +154,11 @@ class CodeEngine:
             for image in images:
                 new_image.paste(image, (0, 0), image)
         return new_image
-
-    def static_frame(self, slide, frag_type=[0,-1]):
-        return self.blend_imgs(self._static_frame(slide, frag_type))
-    def static_frame_list(self, slide, frag_type=[0,-1]):
-        return self._static_frame(slide, frag_type)
-
-    def _static_frame(self, slide, frag_type):
+        
+    def static_frames(self, slide, frag_type=[0,-1]):
         txt_imgs = []
-
         positions = slide.frags_to_coords(frag_type)
-
         for pos_n, frag in enumerate([frag for frag in slide.dynamic_frags if (frag.frag_type in frag_type)]):
-
             txt_imgs.append(self.create_text_image(frag.content, position=positions[pos_n]))
-            
         return txt_imgs
-
-
 
