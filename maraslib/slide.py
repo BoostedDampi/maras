@@ -14,13 +14,9 @@ class Slide:
     
     def __init__(self, text, fade_out=None, fade_in=None):
 
-        self.content = ""
-        self.diff = []
-
-        self.dynamic_frags = []
-
         self.content = text
         self.diff = self.diff_newline_split([(0, self.content)]) #In case this is the first slide no diff will be use
+        self.dynamic_frags = [] 
 
         self.fade_out = lambda frame, frames: 1-(frame/frames) if fade_out is None else fade_out
         self.fade_in = lambda frame, frames: frame/frames if fade_in is None else fade_in 
@@ -43,9 +39,8 @@ class Slide:
                 adjusted_diff.append(elem)
         return adjusted_diff
 
-
     def generate_frags(self, font):
-
+        self.dynamic_frags = []
         for elem in self.diff:
             self.dynamic_frags.append(Frag(elem[1], elem[0], font))
 
@@ -66,8 +61,3 @@ class Slide:
             cursor = (x_mod, y_mod)
 
         return pos
-    
-
-    def show_frags(self):
-        print(f"Dynaimc Fragments: {self.dynamic_frags}")
-

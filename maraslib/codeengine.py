@@ -4,7 +4,7 @@ import numpy as np
 from .slide import Slide
 class CodeEngine:
 
-    def __init__(self, font_name, font_size, img_size=(800,800), fps=24):
+    def __init__(self, font_name, font_size, img_size=(1000,1000), fps=24):
         self.slides = []
         self.font = ImageFont.truetype(f"fonts/{font_name}", font_size) if font_name else ImageFont.load_default()
         self.font_size = font_size
@@ -13,10 +13,11 @@ class CodeEngine:
 
     def new_slide(self, text):
         """
-        Creates a new slide.
+        Creates a new slide diffing the one before with this one, then it overwrites fragments for the elements by type (mantein, remove, add).
         text:str -> the code that should be displayed in this slide
         """
         slide = Slide(text)
+        slide.generate_frags(self.font)
 
         if len(self.slides) > 0:
             print(f"Diffing slide {len(self.slides)} with slide {len(self.slides)-1}")
@@ -25,55 +26,47 @@ class CodeEngine:
 
         self.slides.append(slide)
         return slide
-    
-    def dynamic_remove(self, slide, duration=2):
+   
+    # ============================
+    # Fade in and Fade Out of text
+    # ============================
+
+    def dynamic_fade(self, slide, fade_function, target, duration=2):
         
         frames = duration * self.fps
-        diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-1])]
-        original = self.static_frames(slide, [0,-1])
+        diff = [diff[0] for diff in slide.diff if (diff[0] in [0,target])]
+        original = self.static_frame(slide, [0,target], True)
 
         #Combining images to remove and images to mantain to make blend simpler
-        combined_to_remove = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==-1])
-        combined_to_mantain = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==0])
+        combined_to_remove = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==target])
+        combined_to_maintain = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==0])
 
         #generating evenly spaced numbers for every frame
-        scaling_function = slide.fade_out 
         buffer = []
-        for frame in range(1, frames):
+        for frame in range(0, frames):
             #the factor to multiply with the alpha
-            factor = scaling_function(frame, frames)
+            factor = fade_function(frame, frames)
 
             edited = np.array(combined_to_remove)
             edited[...,3] = (edited[..., 3] * factor).astype(np.uint8)
-            edited = Image.fromarray(edited)
-            buffer.append(self.blend_imgs([edited, combined_to_mantain]))
+            edited = Image.fromarray(edited, "RGBA")
+
+            #blended = self.blend_imgs([combined_to_maintain, edited])
+            blended = Image.alpha_composite(edited, combined_to_maintain)
+            
+            buffer.append(blended)
 
         return buffer
 
-    def dynamic_blendin(self, slide, duration=5):
-            
-            frames = duration * self.fps
-            diff = [diff[0] for diff in slide.diff if (diff[0] in [0,1])]
-            original = self.static_frames(slide, [0,1])
+    def fade_in(self, slide, duration=2):
+        return self.dynamic_fade(slide, slide.fade_in, 1, duration)
+    def fade_out(self, slide, duration=2):
+        return self.dynamic_fade(slide, slide.fade_out, -1, duration)
 
-            #Combining images to remove and images to mantain to make blend simpler
-            combined_to_blendin = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==1])
-            combined_to_mantain = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==0])
+    # ================
+    # Movement of text
+    # ================
 
-            #generating evenly spaced numbers for every frame
-            scaling_function = slide.fade_in 
-
-            buffer = []
-            for t in range(0, frames):
-                #the factor to multiply with the alpha
-                factor = scaling_function(t, frames)
-
-                edited = np.array(combined_to_blendin)
-                edited[...,3] = (edited[..., 3] * factor).astype(np.uint8)
-                edited = Image.fromarray(edited)
-                buffer.append(self.blend_imgs([edited, combined_to_mantain]))
-
-            return buffer
 
     def dynamic_move(self, slide, duration=2):
 
@@ -81,21 +74,12 @@ class CodeEngine:
 
         new_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,1])]
         old_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-1])]
-        original = [img for (img, diff) in zip(self.static_frames(slide, [0,-1]), old_diff) if (diff==0)]
+        original = [img for (img, diff) in zip(self.static_frame(slide, [0,-1], True), old_diff) if (diff==0)]
 
         before_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,-1]), old_diff) if pos[1] == 0])
         after_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,1]), new_diff) if pos[1] == 0])
 
         steps = np.array([(after-bef)/fps for (bef, after) in zip(before_pos, after_pos)])
-
-        print("---------- Dynamic Move -----------")
-        for b, a, s in zip(before_pos, after_pos, steps):
-            # Format the positions and steps to fixed-width strings
-            b_str = f"[{b[0]:3d} {b[1]:3d}]"
-            a_str = f"[{a[0]:3d} {a[1]:3d}]"
-            s_str = f"[{s[0]:5.2f} {s[1]:5.2f}]"
-            # Print the formatted strings with the arrow in the same column
-            print(f"{b_str} -> {a_str} in {s_str} steps")
 
         frames = []
         for frame in range(fps):
@@ -105,6 +89,9 @@ class CodeEngine:
                 frames.append(self.blend_imgs(original, output_array))
         return frames
 
+    # ================
+    # Static sequences
+    # ================
 
     def static_sequence(self, slide, duration=5):
         """
@@ -113,13 +100,33 @@ class CodeEngine:
         duration:int -> time in seconds of the clip
         fps:int -> fps should 
         """
+        
+        frames_to_render = duration*self.fps
+        frame = self.static_frame(slide)
+        frames = [frame for _ in range(frames_to_render)]
+        return frames
+
+    # =========================================================
+    # Rendering of image arrays outputed by the other functions
+    # =========================================================
+
+    def render(self):
+
         if len(self.slides) < 2:
             raise Exception("At least one slide is neccesary...")
 
-        frames_to_render = duration*self.fps
-        frame = self.blend_imgs(self.static_frames(slide))
-        frames = [frame for _ in range(frames_to_render)]
-        return frames
+        frames = []
+
+        for slide_n in range(len(self.slides)-1):
+
+            frames += self.static_sequence(self.slides[slide_n], duration=2)
+            frames += self.fade_out(self.slides[slide_n], duration=1)
+            frames += self.dynamic_move(self.slides[slide_n], duration=1)
+            frames += self.fade_in(self.slides[slide_n], duration=1)
+            frames += self.static_sequence(self.slides[slide_n+1], duration=2)
+
+        self.list_render(frames)
+
 
     def list_render(self, frames, name="new_list_render.mp4"):
         clip = mpy.ImageSequenceClip([np.array(frame) for frame in frames], fps=self.fps)
@@ -156,10 +163,14 @@ class CodeEngine:
                 new_image.paste(image, (0, 0), image)
         return new_image
         
-    def static_frames(self, slide, frag_type=[0,-1]):
+    def static_frame(self, slide, frag_type=[0,-1], as_list=False):
+
         txt_imgs = []
         positions = slide.frags_to_coords(frag_type)
-        for pos_n, frag in enumerate([frag for frag in slide.dynamic_frags if (frag.frag_type in frag_type)]):
+        frags = [frag for frag in slide.dynamic_frags if (frag.frag_type in frag_type)]
+
+        for pos_n, frag in enumerate(frags):
             txt_imgs.append(self.create_text_image(frag.content, position=positions[pos_n]))
-        return txt_imgs
+
+        return txt_imgs if as_list else self.blend_imgs(txt_imgs)
 
