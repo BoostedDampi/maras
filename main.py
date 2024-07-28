@@ -4,75 +4,49 @@ from maraslib.codeengine import CodeEngine
 print("Code Animation")
 
 
-engine = CodeEngine("RobotoMono.ttf", 25)
+engine = CodeEngine("RobotoMono.ttf", 20)
 
 slide0 = engine.new_slide("""
-def dijkstra(graph, start):
-    # Priority queue to hold nodes to be explored
-    priority_queue = [(0, start)]
-    # Dictionary to hold the shortest distance to each node
-    distances = {start: 0}
-    # Dictionary to hold the previous node on the shortest path
-    previous_nodes = {start: None}
-
-    while priority_queue:
-        // HIDDEN CODE // 
-    return distances, previous_nodes""")
-
+void Graph::DFS(int v)
+{
+Some code
+}
+""")
 
 slide1 = engine.new_slide("""
-def dijkstra(graph, start):
-    # Priority queue to hold nodes to be explored
-    priority_queue = [(0, start)]
-    # Dictionary to hold the shortest distance to each node
-    distances = {start: 0}
-    # Dictionary to hold the previous node on the shortest path
-    previous_nodes = {start: None}
+void Graph::DFS(int v)
+{
+    // Mark the current node as visited and
+    // print it
+    visited[v] = true;
+    cout << v << " ";
 
-    while priority_queue:
-        # Get the node with the smallest distance
-        current_distance, current_node = heapq.heappop(priority_queue)
-
-        # Check if this distance is already larger than the known shortest distance
-        if current_distance > distances.get(current_node, float('inf')):
-            continue
-
-        # Explore neighbors
-        for neighbor, weight in graph.get(current_node, {}).items():
-           // HIDDEN CODE // 
-    return distances, previous_nodes""")
+    // Recur for all the vertices adjacent
+    // to this vertex
+    list<int>::iterator i;
+    for (i = adj[v].begin(); i != adj[v].end(); ++i){what is this? other code}
+}
+""")
 
 
 slide2 = engine.new_slide("""
-def dijkstra(graph, start):
-    # Priority queue to hold nodes to be explored
-    priority_queue = [(0, start)]
-    # Dictionary to hold the shortest distance to each node
-    distances = {start: 0}
-    # Dictionary to hold the previous node on the shortest path
-    previous_nodes = {start: None}
+void Graph::DFS(int v)
+{
+    // Mark the current node as visited and
+    // print it
+    visited[v] = true;
+    cout << v << " ";
 
-    while priority_queue:
-        # Get the node with the smallest distance
-        current_distance, current_node = heapq.heappop(priority_queue)
-
-        # Check if this distance is already larger than the known shortest distance
-        if current_distance > distances.get(current_node, float('inf')):
-            continue
-
-        # Explore neighbors
-        for neighbor, weight in graph.get(current_node, {}).items():
-            distance = current_distance + weight
-
-            # If a shorter path to the neighbor is found
-            if distance < distances.get(neighbor, float('inf')):
-                distances[neighbor] = distance
-                previous_nodes[neighbor] = current_node
-                heapq.heappush(priority_queue, (distance, neighbor))
-
-    return distances, previous_nodes""")
-
-
+    // Recur for all the vertices adjacent
+    // to this vertex
+    list<int>::iterator i;
+    for (i = adj[v].begin(); i != adj[v].end(); ++i){
+        if (!visited[*i]){
+            DFS(*i);
+        }
+    }
+}
+""")
 
 
 engine.render()
