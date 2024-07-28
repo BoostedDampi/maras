@@ -4,7 +4,7 @@ import numpy as np
 from .slide import Slide
 class CodeEngine:
 
-    def __init__(self, font_name, font_size, img_size=(1000,1000), fps=24):
+    def __init__(self, font_name, font_size, img_size=(1000,1000), fps=30):
         self.slides = []
         self.font = ImageFont.truetype(f"fonts/{font_name}", font_size) if font_name else ImageFont.load_default()
         self.font_size = font_size
@@ -47,14 +47,16 @@ class CodeEngine:
             #the factor to multiply with the alpha
             factor = fade_function(frame, frames)
 
-            edited = np.array(combined_to_remove)
-            edited[...,3] = (edited[..., 3] * factor).astype(np.uint8)
-            edited = Image.fromarray(edited, "RGBA")
-
-            #blended = self.blend_imgs([combined_to_maintain, edited])
-            blended = Image.alpha_composite(edited, combined_to_maintain)
+            current_image = np.array(combined_to_remove)
+            current_alpha= current_image[..., 3]
+            new_alpha = (current_alpha * factor).astype(np.uint8)
+            current_image[..., 3] = new_alpha
+            edited_image = Image.fromarray(current_image, "RGBA")
             
-            buffer.append(blended)
+            base = combined_to_maintain.copy()
+            base.paste(edited_image, (0,0), edited_image)
+
+            buffer.append(base)
 
         return buffer
 
@@ -79,11 +81,13 @@ class CodeEngine:
         before_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,-1]), old_diff) if pos[1] == 0])
         after_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,1]), new_diff) if pos[1] == 0])
 
-        steps = np.array([(after-bef)/fps for (bef, after) in zip(before_pos, after_pos)])
-
+        #steps = np.array([(after-bef)/fps for (bef, after) in zip(before_pos, after_pos)])
+        distance = (after_pos - before_pos)
+        
+        movement_function = slide.move 
         frames = []
         for frame in range(fps):
-                step = steps * frame
+                step = movement_function(frame, fps, distance)
 
                 output_array = [tuple(map(int, sub_array)) for sub_array in step]
                 frames.append(self.blend_imgs(original, output_array))
@@ -93,7 +97,7 @@ class CodeEngine:
     # Static sequences
     # ================
 
-    def static_sequence(self, slide, duration=5):
+    def static_sequence(self, slide, target, duration=5):
         """
         Renders a static video of a slide.
         slide:Slide -> the slide to be rendered
@@ -102,7 +106,7 @@ class CodeEngine:
         """
         
         frames_to_render = duration*self.fps
-        frame = self.static_frame(slide)
+        frame = self.static_frame(slide, [0, target])
         frames = [frame for _ in range(frames_to_render)]
         return frames
 
@@ -119,11 +123,11 @@ class CodeEngine:
 
         for slide_n in range(len(self.slides)-1):
 
-            frames += self.static_sequence(self.slides[slide_n], duration=2)
+            frames += self.static_sequence(self.slides[slide_n], target=-1, duration=1)
             frames += self.fade_out(self.slides[slide_n], duration=1)
             frames += self.dynamic_move(self.slides[slide_n], duration=1)
             frames += self.fade_in(self.slides[slide_n], duration=1)
-            frames += self.static_sequence(self.slides[slide_n+1], duration=2)
+            frames += self.static_sequence(self.slides[slide_n+1], target=-1, duration=1)
 
         self.list_render(frames)
 
@@ -160,7 +164,7 @@ class CodeEngine:
                 new_image.paste(image, pos, image)
         else:
             for image in images:
-                new_image.paste(image, (0, 0), image)
+                new_image.paste(image, (0,0), image)
         return new_image
         
     def static_frame(self, slide, frag_type=[0,-1], as_list=False):
@@ -168,9 +172,11 @@ class CodeEngine:
         txt_imgs = []
         positions = slide.frags_to_coords(frag_type)
         frags = [frag for frag in slide.dynamic_frags if (frag.frag_type in frag_type)]
+        
+        for pos, frag in zip(positions, frags):
+            txt_imgs.append(self.create_text_image(frag.content, position=pos))
 
-        for pos_n, frag in enumerate(frags):
-            txt_imgs.append(self.create_text_image(frag.content, position=positions[pos_n]))
+        self.blend_imgs(txt_imgs)
 
         return txt_imgs if as_list else self.blend_imgs(txt_imgs)
 
