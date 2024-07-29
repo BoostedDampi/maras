@@ -35,7 +35,7 @@ class CodeEngine:
         
         frames = duration * self.fps
         diff = [diff[0] for diff in slide.diff if (diff[0] in [0,target])]
-        original = self.static_frame(slide, [0,target], True)
+        original = self.new_frame(slide, [0,target], True)
 
         #Combining images to remove and images to mantain to make blend simpler
         combined_to_remove = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==target])
@@ -76,7 +76,7 @@ class CodeEngine:
 
         new_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,1])]
         old_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-1])]
-        original = [img for (img, diff) in zip(self.static_frame(slide, [0,-1], True), old_diff) if (diff==0)]
+        original = [img for (img, diff) in zip(self.new_frame(slide, [0,-1], True), old_diff) if (diff==0)]
 
         before_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,-1]), old_diff) if pos[1] == 0])
         after_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,1]), new_diff) if pos[1] == 0])
@@ -106,7 +106,7 @@ class CodeEngine:
         """
         
         frames_to_render = duration*self.fps
-        frame = self.static_frame(slide, [0, target])
+        frame = self.new_frame(slide, [0, target])
         frames = [frame for _ in range(frames_to_render)]
         return frames
 
@@ -167,7 +167,7 @@ class CodeEngine:
                 new_image.paste(image, (0,0), image)
         return new_image
         
-    def static_frame(self, slide, frag_type=[0,-1], as_list=False):
+    def new_frame(self, slide, frag_type=[0,-1], as_list=False):
 
         txt_imgs = []
         positions = slide.frags_to_coords(frag_type)
