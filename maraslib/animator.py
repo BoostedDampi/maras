@@ -101,7 +101,7 @@ class Animator:
         frames = [frame for _ in range(frames_to_render)]
         return frames
 
-    def show_before(self, slide, duration=5):
+    def show(self, slide, duration=5):
         return self._static_sequence(slide, -1, duration)
 
     def show_after(self, slide, duration=5):
@@ -111,8 +111,13 @@ class Animator:
     # Default Animations
     # ==================
 
-    def default(self, slide):
-       pass 
+    def default(self, slide, duration):
+        frames = []
+        frames += self.show(slide, duration/2)
+        frames += self.fade_out(slide, duration/8)
+        frames += self.make_space(slide, duration/4)
+        frames += self.fade_in(slide, duration/8)
+        return frames
 
     # =================
     # Utility Functions

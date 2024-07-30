@@ -48,12 +48,12 @@ void Graph::DFS(int v)
 
 slide0.add_animation(engine.animator.default, 4)
 
-slide1.add_animation(engine.animator.show_before, 2)
+slide1.add_animation(engine.animator.show, 2)
 slide1.add_animation(engine.animator.fade_out, 0.5)
 slide1.add_animation(engine.animator.make_space, 1)
 slide1.add_animation(engine.animator.fade_in, 0.5)
 
-slide2.add_animation(engine.animator.show_before, 2)
+slide2.add_animation(engine.animator.show, 2)
 
 print(engine)
 
