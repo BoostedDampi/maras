@@ -78,7 +78,7 @@ class Animator:
                 frames.append(self.blend_imgs(original, output_array))
         return frames
 
-    def move_in(self, slide, duration):
+    def make_space(self, slide, duration):
         return self._dynamic_move(slide, False, duration)
 
     def move_back(self, slide, duration):
