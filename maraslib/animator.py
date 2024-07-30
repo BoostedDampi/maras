@@ -9,14 +9,14 @@ class Animator:
         self.img_size = img_size
         self.font = font
 
-
     # ============================
     # Fade in and Fade Out of text
     # ============================
 
-    def dynamic_fade(self, slide, fade_function, target, duration=2):
+    def _dynamic_fade(self, slide, fade_function, target, duration):
         
-        frames = duration * self.fps
+        frames = int(duration * self.fps)
+
         diff = [diff[0] for diff in slide.diff if (diff[0] in [0,target])]
         original = self.new_frame(slide, [0,target], True)
 
@@ -43,19 +43,19 @@ class Animator:
 
         return buffer
 
-    def fade_in(self, slide, duration=2):
-        return self.dynamic_fade(slide, slide.fade_in, 1, duration)
-    def fade_out(self, slide, duration=2):
-        return self.dynamic_fade(slide, slide.fade_out, -1, duration)
+    def fade_in(self, slide, duration):
+        return self._dynamic_fade(slide, slide.fade_in, 1, duration)
+    def fade_out(self, slide, duration):
+        return self._dynamic_fade(slide, slide.fade_out, -1, duration)
 
     # ================
     # Movement of text
     # ================
 
 
-    def dynamic_move(self, slide, inverse=False, duration=2):
+    def _dynamic_move(self, slide, inverse, duration):
 
-        fps = duration * self.fps
+        fps = int(duration * self.fps)
 
         new_is = 1 if not inverse else -1
 
@@ -79,16 +79,16 @@ class Animator:
         return frames
 
     def move_in(self, slide, duration):
-        pass
+        return self._dynamic_move(slide, False, duration)
 
     def move_back(self, slide, duration):
-        pass
+        return self._dynamic_move(slide, True, duration)
 
     # ================
     # Static sequences
     # ================
 
-    def _static_sequence(self, slide, target, duration=5):
+    def _static_sequence(self, slide, target, duration):
         """
         Renders a static video of a slide.
         slide:Slide -> the slide to be rendered
@@ -96,7 +96,7 @@ class Animator:
         fps:int -> fps should 
         """
         
-        frames_to_render = duration*self.fps
+        frames_to_render = int(duration*self.fps)
         frame = self.new_frame(slide, [0, target])
         frames = [frame for _ in range(frames_to_render)]
         return frames
