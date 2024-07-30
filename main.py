@@ -49,5 +49,17 @@ void Graph::DFS(int v)
 """)
 
 
+slide0.add_animation(engine.show_before, 1)
+slide0.add_animation(engine.fade_out, 1)
+slide0.add_animation(engine.dynamic_move, 1)
+slide0.add_animation(engine.fade_in, 1)
+
+slide1.add_animation(engine.show_before, 1)
+slide1.add_animation(engine.fade_out, 1)
+slide1.add_animation(engine.dynamic_move, 1)
+slide1.add_animation(engine.fade_in, 1)
+
+slide1.add_animation(engine.show_before, 1)
+
 engine.render()
 
