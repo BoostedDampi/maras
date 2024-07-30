@@ -1,7 +1,9 @@
-# maras
+# 🎥 maras 🎥
 
-Maras is a Python tool designed for creating dynamic, animated presentations of code changes. It uses a slide-based approach, where each slide represents a state of the code, and transitions between slides are animated to highlight differences and changes. Ideal for tutorials, lectures, and presentations, Maras helps you visually demonstrate the evolution of code in an engaging way.
-This is a personal project of a CS Student, it is very chaotic, but it works.
+Maras is a Python tool designed for creating dynamic, **animated presentations of code changes**. It uses a slide-based approach, where each slide represents a state of the code, and transitions between slides are animated to highlight differences and changes. Ideal for tutorials, lectures, and presentations, Maras helps you visually demonstrate the evolution of code in an engaging way.
+
+This is a **personal project** to learn a bit of Object Oriented Programming, it is very chaotic and absolutly not optimized, but it works.
+If you now how to improve my code please tell me.
 
 ### Features
 
@@ -10,11 +12,12 @@ This is a personal project of a CS Student, it is very chaotic, but it works.
 - Customizable Fonts and Sizes: Specify font type and size for your code presentation.
 - High-Quality Rendering: Uses moviepy and PIL to generate high-quality video output.
 
-### Todo
+### To-Do
 
-- More transitions and movement styles.
-- Colors (i need an ast and i'm scared).
-- better usage and more customizability.
+- [ ] More transitions and movement styles.
+- [ ] Colors (i need an ast and i'm scared).
+- [ ] Better usage and more customizability.
+- [ ] Nice code seperation and OOP patterns
 
 ## Installation
 
@@ -28,6 +31,8 @@ pip install -r requirements.txt
 ```
 
 ## Usage
+
+_This explanation is **deprecated**, look in the "main.py" file for a up to date example_
 
 Here's a basic example of how to use maras:
 
