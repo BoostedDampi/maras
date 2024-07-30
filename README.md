@@ -18,6 +18,7 @@ If you now how to improve my code please tell me.
 - [ ] Colors (i need an ast and i'm scared).
 - [ ] Better usage and more customizability.
 - [ ] Nice code seperation and OOP patterns
+- [ ] Error Handling
 
 ## Installation
 
