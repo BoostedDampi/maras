@@ -15,10 +15,10 @@ If you now how to improve my code please tell me.
 ### To-Do
 
 - [ ] More transitions and movement styles.
-- [ ] Colors (i need an ast and i'm scared).
-- [ ] Better usage and more customizability.
-- [ ] Nice code seperation and OOP patterns
-- [x] Error Handling
+- [ ] Colors (A ast is needed for color schemes, seems difficult).
+- [ ] Better end user customizability.
+- [x] Better code positioning and use of OOP patterns
+- [x] Better Error Handling
 
 ## Installation
 
