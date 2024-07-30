@@ -1,10 +1,10 @@
 
-from maraslib.codeengine import CodeEngine
+from maraslib.engine import AnimationEngine
 
 print("Code Animation")
 
 
-engine = CodeEngine("RobotoMono.ttf", 20)
+engine = AnimationEngine("RobotoMono.ttf", 20)
 
 slide0 = engine.new_slide("""
 void Graph::DFS(int v)
@@ -49,17 +49,17 @@ void Graph::DFS(int v)
 """)
 
 
-slide0.add_animation(engine.show_before, 1)
-slide0.add_animation(engine.fade_out, 1)
-slide0.add_animation(engine.dynamic_move, 1)
-slide0.add_animation(engine.fade_in, 1)
+slide0.add_animation(engine.animator.show_before, 1)
+slide0.add_animation(engine.animator.fade_out, 1)
+slide0.add_animation(engine.animator.dynamic_move, 1)
+slide0.add_animation(engine.animator.fade_in, 1)
 
-slide1.add_animation(engine.show_before, 1)
-slide1.add_animation(engine.fade_out, 1)
-slide1.add_animation(engine.dynamic_move, 1)
-slide1.add_animation(engine.fade_in, 1)
+slide1.add_animation(engine.animator.show_before, 1)
+slide1.add_animation(engine.animator.fade_out, 1)
+slide1.add_animation(engine.animator.dynamic_move, 1)
+slide1.add_animation(engine.animator.fade_in, 1)
 
-slide1.add_animation(engine.show_before, 1)
+slide1.add_animation(engine.animator.show_before, 1)
 
 engine.render()
 
