@@ -7,7 +7,6 @@ class Frag:
         self.length = self.get_length(text, font)
         self.height = self.get_height(font)
 
-
     def get_length(self, text, font):
         left, top, length, bottom = font.getbbox(text)
         return length
@@ -24,10 +23,19 @@ class Slide:
         self.diff = self.diff_newline_split([(0, self.content)]) #In case this is the first slide no diff will be use
         self.dynamic_frags = [] 
 
+        self.animations = [] #animations to be applied on the slide
+
+
         self.fade_out = lambda frame, frames: pow(1-(frame/frames), 2) if fade_out is None else fade_out
         self.fade_in = lambda frame, frames: pow(frame/frames,2) if fade_in is None else fade_in
         self.move = lambda frame, fps, distance: (distance / (fps - 1) ** 2) * frame ** 2
 
+    def add_animation(self, animation, duration):
+        """
+        add_animation adds the animation for this specific slide to the render pipeline.
+        animation:func(slide, duration) -> func is a function that accepts a slide and a durations and outputs a list of frames. Example fade_in, fade_out, dynamic_move 
+        """
+        self.animations.append((animation, duration))
 
     def diff_with(self, other_slide):
         dmp = dmp_module.diff_match_patch()
