@@ -2,6 +2,8 @@ import moviepy.editor as mpy
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from .slide import Slide
+
+# I could make code engine a singleton pattern but i'm not sure if it is usefull
 class CodeEngine:
 
     def __init__(self, font_name, font_size, img_size=(1000,1000), fps=30):
@@ -10,6 +12,7 @@ class CodeEngine:
         self.font_size = font_size
         self.img_size = img_size
         self.fps = fps
+
 
     def new_slide(self, text):
         """
@@ -70,12 +73,14 @@ class CodeEngine:
     # ================
 
 
-    def dynamic_move(self, slide, duration=2):
+    def dynamic_move(self, slide, inverse=False, duration=2):
 
         fps = duration * self.fps
 
-        new_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,1])]
-        old_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-1])]
+        new_is = 1 if not inverse else -1
+
+        new_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,new_is])]
+        old_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-new_is])]
         original = [img for (img, diff) in zip(self.new_frame(slide, [0,-1], True), old_diff) if (diff==0)]
 
         before_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,-1]), old_diff) if pos[1] == 0])
@@ -93,11 +98,17 @@ class CodeEngine:
                 frames.append(self.blend_imgs(original, output_array))
         return frames
 
+    def move_in(self, slide, duration):
+        pass
+
+    def move_back(self, slide, duration):
+        pass
+
     # ================
     # Static sequences
     # ================
 
-    def static_sequence(self, slide, target, duration=5):
+    def _static_sequence(self, slide, target, duration=5):
         """
         Renders a static video of a slide.
         slide:Slide -> the slide to be rendered
@@ -110,6 +121,19 @@ class CodeEngine:
         frames = [frame for _ in range(frames_to_render)]
         return frames
 
+    def show_before(self, slide, duration=5):
+        return self._static_sequence(slide, -1, duration)
+
+    def show_after(self, slide, duration=5):
+        return self._static_sequence(slide, 1, duration)
+
+    # ==================
+    # Default Animations
+    # ==================
+
+    def default(self, slide):
+       pass 
+
     # =========================================================
     # Rendering of image arrays outputed by the other functions
     # =========================================================
@@ -121,13 +145,9 @@ class CodeEngine:
 
         frames = []
 
-        for slide_n in range(len(self.slides)-1):
-
-            frames += self.static_sequence(self.slides[slide_n], target=-1, duration=1)
-            frames += self.fade_out(self.slides[slide_n], duration=1)
-            frames += self.dynamic_move(self.slides[slide_n], duration=1)
-            frames += self.fade_in(self.slides[slide_n], duration=1)
-            frames += self.static_sequence(self.slides[slide_n+1], target=-1, duration=1)
+        for slide in self.slides:
+            for (animation, duration) in slide.animations:
+                frames += animation(slide, duration=duration)
 
         self.list_render(frames)
 
