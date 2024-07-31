@@ -1,4 +1,6 @@
 import diff_match_patch as dmp_module
+from .animator import Animator
+
 class Frag:
     
     def __init__(self, text, frag_type, font):
@@ -17,27 +19,13 @@ class Frag:
 
 class Slide:
     
-    def __init__(self, text, fade_out=None, fade_in=None, move=None):
-
-        if not (callable(fade_out) or fade_out==None):
-            raise ValueError("Fade_out has to be a function with input frame, totframes and output a integer")
-        if not (callable(fade_in) or fade_in==None):
-            raise ValueError("Fade_in has to be a function with input frame, totframes and output a integer")
-        if not (callable(move) or move==None):
-            raise ValueError("move has to be a function with input frame, totframes and output a integer")
-
+    def __init__(self, text):
 
         self.content = text
+
         self.diff = self.diff_newline_split([(0, self.content)]) #In case this is the first slide no diff will be use
         self.dynamic_frags = [] 
-
         self.animations = [] #animations to be applied on the slide
-
-
-        self.fade_out = lambda frame, frames: pow(1-(frame/frames), 2) if fade_out is None else fade_out
-        self.fade_in = lambda frame, frames: pow(frame/frames,2) if fade_in is None else fade_in
-        self.move = lambda frame, fps, distance: (distance / (fps - 1) ** 2) * frame ** 2
-
 
     def add_animation(self, animation, duration):
         """

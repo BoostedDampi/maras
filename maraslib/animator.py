@@ -44,16 +44,16 @@ class Animator:
         return buffer
 
     def fade_in(self, slide, duration):
-        return self._dynamic_fade(slide, slide.fade_in, 1, duration)
+        return self._dynamic_fade(slide, self.ascending_quad_fun, 1, duration)
     def fade_out(self, slide, duration):
-        return self._dynamic_fade(slide, slide.fade_out, -1, duration)
+        return self._dynamic_fade(slide, self.descending_quad_fun, -1, duration)
 
     # ================
     # Movement of text
     # ================
 
 
-    def _dynamic_move(self, slide, inverse, duration):
+    def _dynamic_move(self, slide, move_function, inverse, duration):
 
         fps = int(duration * self.fps)
 
@@ -69,20 +69,19 @@ class Animator:
         #steps = np.array([(after-bef)/fps for (bef, after) in zip(before_pos, after_pos)])
         distance = (after_pos - before_pos)
         
-        movement_function = slide.move 
         frames = []
         for frame in range(fps):
-                step = movement_function(frame, fps, distance)
+                step = move_function(frame, fps, distance)
 
                 output_array = [tuple(map(int, sub_array)) for sub_array in step]
                 frames.append(self.blend_imgs(original, output_array))
         return frames
 
     def make_space(self, slide, duration):
-        return self._dynamic_move(slide, False, duration)
+        return self._dynamic_move(slide, self.distance_weighted_quadratic, False, duration)
 
     def move_back(self, slide, duration):
-        return self._dynamic_move(slide, True, duration)
+        return self._dynamic_move(slide, self.distance_weighted_quadratic, True, duration)
 
     # ================
     # Static sequences
@@ -119,9 +118,25 @@ class Animator:
         frames += self.fade_in(slide, duration/8)
         return frames
 
+    
+    # =================
+    # Functions
+    # =================
+
+    @staticmethod
+    def ascending_quad_fun(n, max_n, power=2): 
+        return pow((n/max_n), power)
+    @staticmethod
+    def descending_quad_fun(n, max_n, power=2): 
+        return pow(((max_n-n)/max_n), power)
+    @staticmethod
+    def distance_weighted_quadratic(n, max_n, distance):
+        return distance / pow((max_n - 1), 2) * pow(n, 2)
+
     # =================
     # Utility Functions
     # =================
+
 
     def create_text_image(self, text, position=(0, 0), color="white"):
         """
