@@ -13,12 +13,12 @@ class Animator:
     # Fade in and Fade Out of text
     # ============================
 
-    def _dynamic_fade(self, slide, fade_function, target, duration):
+    def _dynamic_fade(self, slide, fade_function, target, duration) -> list[Image.Image]:
         
         frames = int(duration * self.fps)
 
         diff = self.get_diff(slide, [0, target])
-        original = self.new_frame(slide, [0,target], True)
+        original = self.new_frame_list(slide, [0,target])
 
         #Combining images to remove and images to mantain to make blend simpler
         combined_to_remove = self.blend_imgs([zipped[1] for zipped in zip(diff, original) if zipped[0]==target])
@@ -43,9 +43,9 @@ class Animator:
 
         return buffer
 
-    def fade_in(self, slide, duration):
+    def fade_in(self, slide, duration)-> list[Image.Image]:
         return self._dynamic_fade(slide, self.ascending_quad_fun, 1, duration)
-    def fade_out(self, slide, duration):
+    def fade_out(self, slide, duration)-> list[Image.Image]:
         return self._dynamic_fade(slide, self.descending_quad_fun, -1, duration)
 
     # ================
@@ -53,7 +53,7 @@ class Animator:
     # ================
 
 
-    def _dynamic_move(self, slide, move_function, inverse, duration):
+    def _dynamic_move(self, slide, move_function, inverse, duration) -> list[Image.Image]:
 
         fps = int(duration * self.fps)
 
@@ -61,7 +61,7 @@ class Animator:
 
         new_diff = np.array(self.get_diff(slide, [0,new_is]))
         old_diff = np.array(self.get_diff(slide, [0,-new_is]))
-        original = [img for (img, diff) in zip(self.new_frame(slide, [0,-1], True), old_diff) if (diff==0)]
+        original = [img for (img, diff) in zip(self.new_frame_list(slide, [0,-1]), old_diff) if (diff==0)]
 
         before_pos = np.array(slide.frags_to_coords([0, -1]))[old_diff == 0]
         after_pos = np.array(slide.frags_to_coords([0, 1]))[new_diff == 0]
@@ -76,17 +76,17 @@ class Animator:
                 frames.append(self.blend_imgs(original, output_array))
         return frames
 
-    def make_space(self, slide, duration):
+    def make_space(self, slide, duration)-> list[Image.Image]:
         return self._dynamic_move(slide, self.distance_weighted_quadratic, False, duration)
 
-    def move_back(self, slide, duration):
+    def move_back(self, slide, duration)-> list[Image.Image]:
         return self._dynamic_move(slide, self.distance_weighted_quadratic, True, duration)
 
     # ================
     # Static sequences
     # ================
 
-    def _static_sequence(self, slide, target, duration):
+    def _static_sequence(self, slide, target, duration)-> list[Image.Image]:
         """
         Renders a static video of a slide.
         slide:Slide -> the slide to be rendered
@@ -171,7 +171,7 @@ class Animator:
                 new_image.paste(image, (0,0), image)
         return new_image
         
-    def new_frame(self, slide, frag_type=[0,-1], as_list=False):
+    def new_frame_list(self, slide, frag_type):
 
         txt_imgs = []
         positions = slide.frags_to_coords(frag_type)
@@ -182,6 +182,11 @@ class Animator:
 
         self.blend_imgs(txt_imgs)
 
-        return txt_imgs if as_list else self.blend_imgs(txt_imgs)
+        return txt_imgs
+    
+    def new_frame(self, slide, frag_type=[0,-1]):
+        return self.blend_imgs(self.new_frame_list(slide, frag_type))
+
+
 
 
