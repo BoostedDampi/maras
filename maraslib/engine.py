@@ -3,7 +3,7 @@ from PIL import ImageFont
 import numpy as np
 from .slide import Slide
 from .animator import Animator
-from os import path
+#from os import path
 
 # I could make code engine a singleton pattern but i'm not sure if it is usefull
 class AnimationEngine:
