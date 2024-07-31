@@ -17,8 +17,9 @@ https://github.com/user-attachments/assets/af5d6a73-2238-43a5-945f-4ddf9a79cba1
 ### To-Do
 
 - [ ] More transitions and movement styles.
-- [ ] Colors (A ast is needed for color schemes, seems difficult).
+- [ ] Colors!!! (A ast is needed for color schemes, seems difficult).
 - [ ] Better end user customizability.
+- [ ] Make maras compatible with installed fonts.
 - [x] Better code positioning and use of OOP patterns
 - [x] Better Error Handling
 
