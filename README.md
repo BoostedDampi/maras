@@ -5,7 +5,7 @@ Maras is a Python library/tool designed for creating **dynamic, animated present
 This is a **personal project** inspired by [this youtube video](https://www.youtube.com/watch?v=OXk6Eabu7uM&t=184s) to learn a bit of Object Oriented Programming, it is very chaotic and absolutly not optimized, but it works.
 If you now how to improve my code please tell me.
 
-[![Video of example 2](https://img.youtube.com/vi/CEFrvcNPkoU/hqdefault.jpg)](https://www.youtube.com/embed/CEFrvcNPkoU)
+https://github.com/user-attachments/assets/af5d6a73-2238-43a5-945f-4ddf9a79cba1
 
 ### Features
 
