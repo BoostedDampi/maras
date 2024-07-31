@@ -17,7 +17,7 @@ class Animator:
         
         frames = int(duration * self.fps)
 
-        diff = [diff[0] for diff in slide.diff if (diff[0] in [0,target])]
+        diff = self.get_diff(slide, [0, target])
         original = self.new_frame(slide, [0,target], True)
 
         #Combining images to remove and images to mantain to make blend simpler
@@ -59,19 +59,18 @@ class Animator:
 
         new_is = 1 if not inverse else -1
 
-        new_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,new_is])]
-        old_diff = [diff[0] for diff in slide.diff if (diff[0] in [0,-new_is])]
+        new_diff = np.array(self.get_diff(slide, [0,new_is]))
+        old_diff = np.array(self.get_diff(slide, [0,-new_is]))
         original = [img for (img, diff) in zip(self.new_frame(slide, [0,-1], True), old_diff) if (diff==0)]
 
-        before_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,-1]), old_diff) if pos[1] == 0])
-        after_pos = np.array([pos[0] for pos in zip(slide.frags_to_coords([0,1]), new_diff) if pos[1] == 0])
+        before_pos = np.array(slide.frags_to_coords([0, -1]))[old_diff == 0]
+        after_pos = np.array(slide.frags_to_coords([0, 1]))[new_diff == 0]
 
-        #steps = np.array([(after-bef)/fps for (bef, after) in zip(before_pos, after_pos)])
-        distance = (after_pos - before_pos)
+        distances = (after_pos - before_pos)
         
         frames = []
         for frame in range(fps):
-                step = move_function(frame, fps, distance)
+                step = move_function(frame, fps, distances)
 
                 output_array = [tuple(map(int, sub_array)) for sub_array in step]
                 frames.append(self.blend_imgs(original, output_array))
@@ -129,13 +128,18 @@ class Animator:
     @staticmethod
     def descending_quad_fun(n, max_n, power=2): 
         return pow(((max_n-n)/max_n), power)
+
     @staticmethod
-    def distance_weighted_quadratic(n, max_n, distance):
-        return distance / pow((max_n - 1), 2) * pow(n, 2)
+    def distance_weighted_quadratic(n, max_n, distance, power=2):
+        return distance / pow((max_n), 2) * pow(n, power)
 
     # =================
     # Utility Functions
     # =================
+
+    def get_diff(self, slide, types):
+        return [diff[0] for diff in slide.diff if (diff[0] in types)]
+
 
 
     def create_text_image(self, text, position=(0, 0), color="white"):
