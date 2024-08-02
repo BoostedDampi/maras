@@ -36,8 +36,6 @@ pip install -r requirements.txt
 
 ## Usage
 
-_This explanation is **deprecated**, look in the "main.py" file for a up to date example_
-
 Here's a basic example of how to use maras:
 
 Initialize the Engine: Create an instance of CodeEngine with your desired font, size, and image dimensions.
